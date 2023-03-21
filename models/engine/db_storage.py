@@ -1,143 +1,91 @@
 #!/usr/bin/python3
-"""This is the db storage class for AirBnB"""
-import datetime
-from os import getenv
-from sqlalchemy.orm import sessionmaker, scoped_session
+"""
+Este módulo define una clase para administrar el almacenamiento
+de la base de datos para el clon de hbnb
+"""
+from models.base_model import Base
 from sqlalchemy import create_engine
-from models.base_model import BaseModel, Base
-from models.user import User
-from models.state import State
-from models.city import City
+from sqlalchemy.orm import sessionmaker, scoped_session
 from models.amenity import Amenity
+from models.city import City
 from models.place import Place
 from models.review import Review
+from models.state import State
+from models.user import User
+from os import getenv
+import models
 
 
-class DBStorage():
-    """
-    Database Engine for AirBnB project
-    """
+class DBStorage:
     __engine = None
     __session = None
 
     def __init__(self):
-        """Init method"""
-        self.__engine = create_engine('mysql+mysqldb://{}:{}@{}/{}'
-                                      .format(getenv('HBNB_MYSQL_USER'),
-                                              getenv('HBNB_MYSQL_PWD'),
-                                              getenv('HBNB_MYSQL_HOST'),
-                                              getenv('HBNB_MYSQL_DB')),
-                                      pool_pre_ping=True)
-        if getenv('HBNB_ENV') == 'test':
-            Base.metadata.drop_all(bind=self.__engine)
+        """
+        Crea una instancia del almacenamiento de la
+        base de datos para crear el motor
+        """
+        self.__engine = create_engine('mysql+mysqldb://{}:{}@{}/{}'.
+                                      format(getenv("HBNB_MYSQL_USER"),
+                                             getenv("HBNB_MYSQL_PWD"),
+                                             getenv("HBNB_MYSQL_HOST"),
+                                             getenv("HBNB_MYSQL_DB"),
+                                             pool_pre_ping=True))
+
+        if getenv("HBNB_ENV ") == 'test':
+            Base.metadata.drop_all(self.__engine)
 
     def all(self, cls=None):
-        """Returns dictionary with all objects depending
-        of the class name (argument cls)"""
-        if cls:
-            objs = self.__session.query(self.classes()[cls])
+        """
+        consulta sobre la sesión actual de la base de datos
+        """
+        if not cls:
+            data_list = self.__session.query(Amenity)
+            data_list.extend(self.__session.query(City))
+            data_list.extend(self.__session.query(Place))
+            data_list.extend(self.__session.query(Review))
+            data_list.extend(self.__session.query(State))
+            data_list.extend(self.__session.query(User))
         else:
-            objs = self.__session.query(State).all()
-            objs += self.__session.query(City).all()
-            objs += self.__session.query(User).all()
-            objs += self.__session.query(Place).all()
-            objs += self.__session.query(Amenity).all()
-            objs += self.__session.query(Review).all()
-
-        dic = {}
-        for obj in objs:
-            k = '{}.{}'.format(type(obj).__name__, obj.id)
-            dic[k] = obj
-        return dic
+            data_list = self.__session.query(cls)
+        return {'{}.{}'.format(type(obj).__name__, obj.id): obj
+                for obj in data_list}
 
     def new(self, obj):
-        """Add the object to the current
-        database session (self.__session)"""
+        """
+        Método para agregar el objeto a la
+        sesión actual de la base de datos
+        """
         self.__session.add(obj)
 
     def save(self):
-        """Commit all changes of the current
-        database session (self.__session)"""
+        """
+        Método para confirmar todos los cambios de la
+        sesión actual de la base de datos
+        """
         self.__session.commit()
 
     def delete(self, obj=None):
-        """Delete from the current database session obj if not None"""
+        """
+        Método eliminar de la
+        sesión de base de datos actual obj si no es None
+        """
+        # obj = cls.id, dentro de una clase, sería una fila de esa clase
         if obj:
             self.__session.delete(obj)
 
     def reload(self):
-        """Create the current database session (self.__session) from
-        the engine (self.__engine) by using a sessionmaker"""
-        from models.user import User
-        from models.state import State
-        from models.city import City
-        from models.amenity import Amenity
-        from models.place import Place
-        from models.review import Review
-
+        """
+        crear todas las tablas en la base de datos
+        """
         Base.metadata.create_all(self.__engine)
-        self.__session = sessionmaker(bind=self.__engine,
-                                      expire_on_commit=False)
-        Session = scoped_session(self.__session)
+        session_factory = sessionmaker(
+            bind=self.__engine, expire_on_commit=False)
+        Session = scoped_session(session_factory)
         self.__session = Session()
 
     def close(self):
-        """Removes the session"""
+        """
+        llamar al método remove() en el atributo de sesión privada
+        """
         self.__session.close()
-
-    def classes(self):
-        """Returns a dictionary of valid classes and their references."""
-        from models.base_model import BaseModel
-        from models.user import User
-        from models.state import State
-        from models.city import City
-        from models.amenity import Amenity
-        from models.place import Place
-        from models.review import Review
-
-        classes = {"BaseModel": BaseModel,
-                   "User": User,
-                   "State": State,
-                   "City": City,
-                   "Amenity": Amenity,
-                   "Place": Place,
-                   "Review": Review}
-        return classes
-
-    def attributes(self):
-        """Returns the valid attributes and their types for classname."""
-        attributes = {
-            "BaseModel":
-                     {"id": str,
-                      "created_at": datetime.datetime,
-                      "updated_at": datetime.datetime},
-            "User":
-                     {"email": str,
-                      "password": str,
-                      "first_name": str,
-                      "last_name": str},
-            "State":
-                     {"name": str},
-            "City":
-                     {"state_id": str,
-                      "name": str},
-            "Amenity":
-                     {"name": str},
-            "Place":
-                     {"city_id": str,
-                      "user_id": str,
-                      "name": str,
-                      "description": str,
-                      "number_rooms": int,
-                      "number_bathrooms": int,
-                      "max_guest": int,
-                      "price_by_night": int,
-                      "latitude": float,
-                      "longitude": float,
-                      "amenity_ids": list},
-            "Review":
-            {"place_id": str,
-                         "user_id": str,
-                         "text": str}
-        }
-        return attributes
