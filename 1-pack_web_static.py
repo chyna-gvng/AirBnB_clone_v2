@@ -1,19 +1,19 @@
 #!/usr/bin/python3
-""" Function that compress a folder """
-from datetime import datetime
+"""Comment"""
 from fabric.api import local
+from datetime import datetime
 
 
 def do_pack():
-    """
-    must return the archive path if the archive has been correctly
-    generated. Otherwise, it should return None
-    """
-    try:
-        local("mkdir -p versions")
-        date = datetime.now().strftime("%Y%m%d%H%M%S")
-        rout = "versions/web_static_{}.tgz".format(date)
-        _gzip = local("tar -cvzf {} web_static".format(rout))
-        return rout
-    except Exception:
+    """Comment again"""
+    local("mkdir -p versions")
+
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    archive_path = "versions/web_static_{}.tgz".format(timestamp)
+
+    result = local("tar -cvzf {} web_static".format(archive_path))
+
+    if result.failed:
         return None
+    else:
+        return archive_path
