@@ -1,25 +1,19 @@
 #!/usr/bin/python3
+"""Comment"""
 from fabric.api import local
 from datetime import datetime
 
 
 def do_pack():
-    """
-    Generates a .tgz archive from the contents of the web_static folder of
-    my AirBnB Clone repo
-    """
-    try:
-        # Create a directory to store the archive files
-        local("mkdir -p versions")
+    """Comment again"""
+    local("mkdir -p versions")
 
-        # Create the name of the archive file
-        file_name = "web_static_{}.tgz".format(
-            datetime.utcnow().strftime("%Y%m%d%H%M%S"))
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    archive_path = "versions/web_static_{}.tgz".format(timestamp)
 
-        # Compress the web_static directory into the archive file
-        local("tar -cvzf versions/{} web_static".format(file_name))
+    result = local("tar -cvzf {} web_static".format(archive_path))
 
-        # Return the path to the archive file
-        return "versions/{}".format(file_name)
-    except BaseException:
+    if result.failed:
         return None
+    else:
+        return archive_path
