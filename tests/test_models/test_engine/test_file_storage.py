@@ -14,11 +14,8 @@ from models.review import Review
 from models.engine.file_storage import FileStorage
 
 
-@unittest.skipIf(
-    os.getenv('HBNB_TYPE_STORAGE') == 'db',
-    "This test only work in Filestorage")
 class TestFileStorage(unittest.TestCase):
-    """this will test the FileStorage"""
+    '''this will test the FileStorage'''
 
     @classmethod
     def setUpClass(cls):
@@ -60,6 +57,7 @@ class TestFileStorage(unittest.TestCase):
         storage = FileStorage()
         obj = storage.all()
         user = User()
+        user.id = 123455
         user.name = "Kevin"
         storage.new(user)
         key = user.__class__.__name__ + "." + str(user.id)
@@ -72,33 +70,25 @@ class TestFileStorage(unittest.TestCase):
         self.storage.save()
         Root = os.path.dirname(os.path.abspath("console.py"))
         path = os.path.join(Root, "file.json")
-
         with open(path, 'r') as f:
             lines = f.readlines()
         try:
             os.remove(path)
-        except Exception:
+        except:
             pass
-
         self.storage.save()
-
         with open(path, 'r') as f:
             lines2 = f.readlines()
-
         self.assertEqual(lines, lines2)
-
         try:
             os.remove(path)
-        except Exception:
+        except:
             pass
-
         with open(path, "w") as f:
             f.write("{}")
-
         with open(path, "r") as r:
             for line in r:
                 self.assertEqual(line, "{}")
-
         self.assertIs(self.storage.reload(), None)
 
 
