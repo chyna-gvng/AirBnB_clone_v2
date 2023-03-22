@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""This is the file storage class for AirBnB"""
+"""Filestorage class for AirBnB"""
 import json
 from models.base_model import BaseModel
 from models.user import User
@@ -20,18 +20,28 @@ class FileStorage:
     __file_path = "file.json"
     __objects = {}
 
+    def delete(self, obj=None):
+        """deletes obj from __objects if it's inside
+        Args:
+            obj: given object
+        """
+        if not obj:
+            return
+        key = "{}.{}".format(type(obj).__name__, obj.id)
+        if key in self.__objects:
+            del self.__objects[key]
+            self.save()
+
     def all(self, cls=None):
         """returns a dictionary
+        Args:
+            cls: class type to filter return by
         Return:
             returns a dictionary of __object
         """
-        if cls is None:
+        if not cls:
             return self.__objects
-        else:
-            for k, v in self.__objects.items():
-                if cls.__name__ in k:
-                    my_dict[k] = v
-                return my_dict
+        return {k: v for k, v in self.__objects.items() if type(v) == cls}
 
     def new(self, obj):
         """sets __object to given obj
@@ -62,15 +72,6 @@ class FileStorage:
         except FileNotFoundError:
             pass
 
-    def delete(self, obj=None):
-        """Deletes obj from __objects if it's inside
-        """
-        if obj:
-            key = "{}.{}".format(obj.__class__.__name__, obj.id)
-            if key in self.__objects.keys():
-                del self.__objects[key]
-                self.save()
-
     def close(self):
-        """deserializing the JSON file to objects"""
+        """Reload to deserialize JSON file objects"""
         self.reload()

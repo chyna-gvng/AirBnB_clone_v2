@@ -1,20 +1,19 @@
 #!/usr/bin/python3
-"""This is the amenity class"""
+"""Amenity class that inherits from BaseModel"""
+from os import getenv
 from models.base_model import BaseModel, Base
-from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
-import os
+from sqlalchemy import Column, String
 
 
 class Amenity(BaseModel, Base):
-    """This is the class for Amenity
+    """ Amenity Class
     Attributes:
         name: input name
     """
-    __tablename__ = "amenities"
-
-    if os.getenv("HBNB_TYPE_STORAGE") == "db":
-        name = Column(String(128), nullable=False)
-        place_amenities = relationship("Place", secondary="place_amenity")
-    else:
-        name = ""
+    __tablename__ = 'amenities'
+    name = Column(String(128), nullable=False)
+    if getenv("HBNB_TYPE_STORAGE") == "db":
+        place_amenities = relationship('Place',
+                                       secondary='place_amenity',
+                                       back_populates='amenities')
