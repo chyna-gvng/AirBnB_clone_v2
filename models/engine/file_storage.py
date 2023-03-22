@@ -10,35 +10,35 @@ class FileStorage:
 
     def all(self, cls=None):
         """Returns a dictionary of models currently in storage"""
-        if cls is None:
-            return self.__objects
+        if cls is not None:
+            cls_objects = {}
+            for k, v in FileStorage.__objects.items():
+                if k.startswith(cls.__name__):
+                    cls_objects.update({k: v})
+            return cls_objects
         else:
-            filtered_obj = {}
-            for key, value in self.__objects.items():
-                if type(value) == cls:
-                    filtered_obj[key] = value
-            return filtered_obj
+            return FileStorage.__objects
 
     def new(self, obj):
         """Adds new object to storage dictionary"""
         self.all().update({obj.to_dict()['__class__'] + '.' + obj.id: obj})
 
-    def delete(self, obj=None):
-        """Deletes obj from objects"""
-        if obj is not None:
-            key = key = obj.__class__.__name__ + "." + obj.id
-            if key in self.__objects:
-                del self.__objects[key]
-                self.save()
-
     def save(self):
         """Saves storage dictionary to file"""
-        with open(self.__file_path, 'w') as f:
+        with open(FileStorage.__file_path, 'w') as f:
             temp = {}
             temp.update(FileStorage.__objects)
             for key, val in temp.items():
                 temp[key] = val.to_dict()
-            json.dump(temp, f)
+            json.dump(temp, f, sort_keys=True, indent=4)
+
+    def delete(self, obj=None):
+        """Deletes the object obj if obj is in __objects"""
+        if obj is not None:
+            for k, v in FileStorage.__objects.items():
+                if v is obj:
+                    tmp = k
+            FileStorage.__objects.pop(tmp)
 
     def reload(self):
         """Loads storage dictionary from file"""
@@ -65,5 +65,5 @@ class FileStorage:
             pass
 
     def close(self):
-        """Deserialize the JSON file to objects"""
+        """Handles storage close"""
         self.reload()

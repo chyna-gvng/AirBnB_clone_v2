@@ -10,6 +10,7 @@
 	<link rel="stylesheet" type="text/css" href="static/styles/4-common.css" />
 	<link rel="stylesheet" type="text/css" href="static/styles/3-header.css" />
 	<link rel="stylesheet" type="text/css" href="static/styles/6-filters.css" />
+	<link rel="stylesheet" type="text/css" href="static/styles/8-places.css" />
 	<link rel="stylesheet" type="text/css" href="static/styles/3-footer.css" />
 </head>
 
@@ -45,6 +46,27 @@
 				</UL>
 			</div>
 			<button>Search</button>
+		</section>
+		<section class="places">
+			<h1>Places</h1>
+			{% for place in places|sort(attribute="name") %}
+			<article>
+				<h2>{{ place.name }}</h2>
+				<div class="price_by_night">${{ place.price_by_night }}</div>
+				<div class="information">
+					<div class="max_guest">{{ place.max_guest }} Guest{% if place.max_guest > 1 %}s{% endif %}</div>
+					<div class="number_rooms">{{ place.number_rooms }} Bedroom{% if place.number_rooms > 1 %}s{% endif %}</div>
+					<div class="number_bathrooms">{{ place.number_bathrooms }} Bathroom{% if place.number_bathrooms > 1 %}s{% endif %}</div>
+				</div>
+				<div class="user">
+					<strong>Owner:</strong>&nbsp;
+					{{ place.user.first_name }} {{ place.user.last_name }}
+				</div>
+				<div class="description">
+					{{ place.description|safe }}
+				</div>
+			</article>
+			{% endfor %}
 		</section>
 	</div>
 	<footer>

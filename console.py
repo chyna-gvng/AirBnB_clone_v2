@@ -2,6 +2,8 @@
 """ Console Module """
 import cmd
 import sys
+import shlex
+
 import models
 from models.base_model import BaseModel
 from models.user import User
@@ -13,65 +15,22 @@ from models.review import Review
 
 
 class HBNBCommand(cmd.Cmd):
-    """Command interpreter for the HBNB project
+    """ Contains the functionality for the HBNB console"""
 
-
-    **CMD MODULE CONVENTION**
-
-
-    The cmd module in Python provides a framework for writing
-    line-oriented command interpreters. It provides a base class, cmd.Cmd,
-    that defines methods and attributes for creating a command-line interface.
-
-    Conventions followed by the cmd module:
-
-    Command methods must start with the prefix ``do_``
-
-    *Examples:*\n
-    ``do_quit()`` will run the command ``quit`` \n
-    ``do_foo()`` will run the command ``foo``
-
-    \n
-
-    Help methods must start with the prefix ``help_``
-
-     *Examples:*\n
-    ``help_quit()`` will run the command ``help quit`` \n
-    ``help_save()`` will run the command ``help save``
-
-    The ``emptyline()`` method is called when an empty line is entered in the
-    command prompt. By default, it repeats the last non-empty command entered.
-    However, it can be overridden to perform a different action or pass.
-
-    The ``EOF`` command (or Ctrl-D) is handled by the ``do_EOF()`` method,
-    which by default exits the command interpreter.
-
-    The ``quit`` command is handled by the ``do_quit()`` method,
-    which by default exits the command interpreter.
-
-    The ``help`` command is handled by the ``do_help()`` method,
-    which by default lists all available commands and their brief descriptions.
-
-    More information can be found in the official documentation on
-    [cmd source code](https://github.com/python/cpython/blob/3.11/Lib/cmd.py)
-    """
-
-    # prints (hbnb) if the script is running in a terminal otherwise ''
+    # determines prompt for interactive/non-interactive modes
     prompt = '(hbnb) ' if sys.__stdin__.isatty() else ''
 
     classes = {
-        'BaseModel': BaseModel, 'User': User, 'Place': Place,
-        'State': State, 'City': City, 'Amenity': Amenity,
-        'Review': Review
-    }
-
+               'BaseModel': BaseModel, 'User': User, 'Place': Place,
+               'State': State, 'City': City, 'Amenity': Amenity,
+               'Review': Review
+              }
     dot_cmds = ['all', 'count', 'show', 'destroy', 'update']
-
     types = {
-        'number_rooms': int, 'number_bathrooms': int,
-        'max_guest': int, 'price_by_night': int,
-        'latitude': float, 'longitude': float
-    }
+             'number_rooms': int, 'number_bathrooms': int,
+             'max_guest': int, 'price_by_night': int,
+             'latitude': float, 'longitude': float
+            }
 
     def preloop(self):
         """Prints if isatty is false"""
@@ -86,7 +45,7 @@ class HBNBCommand(cmd.Cmd):
         """
         _cmd = _cls = _id = _args = ''  # initialize line elements
 
-        # scan for general formatting - i.e '.', '(', ')'
+        # scan for general formating - i.e '.', '(', ')'
         if not ('.' in line and '(' in line and ')' in line):
             return line
 
@@ -101,7 +60,7 @@ class HBNBCommand(cmd.Cmd):
             if _cmd not in HBNBCommand.dot_cmds:
                 raise Exception
 
-            # if parentheses contain arguments, parse them
+            # if parantheses contain arguments, parse them
             pline = pline[pline.find('(') + 1:pline.find(')')]
             if pline:
                 # partition args: (<id>, [<delim>], [<*args>])
@@ -116,7 +75,7 @@ class HBNBCommand(cmd.Cmd):
                 pline = pline[2].strip()  # pline is now str
                 if pline:
                     # check for *args or **kwargs
-                    if pline[0] == '{' and pline[-1] == '}' \
+                    if pline[0] is '{' and pline[-1] is'}'\
                             and type(eval(pline)) is dict:
                         _args = pline
                     else:
@@ -158,43 +117,38 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """ Create an object of any class"""
-        if len(args) < 1:
+        _args = args.split(" ", 1)
+        if not _args[0]:
             print("** class name missing **")
             return
-        # convert the args to a list
-        args = args.split()
-
-        # the 1st element of the list is the class name
-        class_name = args[0]
-
-        if class_name not in self.classes:
+        elif _args[0] not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        new_instance = self.classes[class_name]()
-        for params in args[1:]:
-            if "=" not in params:
-                continue
-            key, value = params.split('=')
-            value = value.replace('_', ' ')
-            if value.startswith('"') and value.endswith('"'):
-                value = value[1:-1].replace('\\"', '"')
-            elif '.' in value:
+        new_instance = HBNBCommand.classes[_args[0]]()
+        if len(_args) > 1:
+            _kwargs = dict((x, y)
+                           for x, y in (elt.split('=')
+                           for elt in _args[1].split(' ')))
+
+            for key, value in _kwargs.items():
                 try:
+                    getattr(new_instance, key)
+                except AttributeError:
+                    continue
+                if value[0] is "\"":
+                    value = value.strip("\"")
+                    value = value.replace("_", " ")
+                    value = value.replace("\\\"", "\"")
+                elif "." in value:
                     value = float(value)
-                except ValueError:
-                    continue
-            else:
-                try:
-                    value = int(value)
-                except ValueError:
-                    continue
-
-            if value is not None and value != "" and hasattr(
-                    new_instance, key):
+                else:
+                    try:
+                        value = int(value)
+                    except:
+                        continue
                 setattr(new_instance, key, value)
-
-        print(new_instance.id)
         new_instance.save()
+        print(new_instance.id)
 
     def help_create(self):
         """ Help information for the create method """
@@ -246,7 +200,7 @@ class HBNBCommand(cmd.Cmd):
             print("** class name missing **")
             return
 
-        if c_name not in self.classes:
+        if c_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
 
@@ -257,7 +211,7 @@ class HBNBCommand(cmd.Cmd):
         key = c_name + "." + c_id
 
         try:
-            del (models.storage.all()[key])
+            models.storage.delete(models.storage.all()[key])
             models.storage.save()
         except KeyError:
             print("** no instance found **")
@@ -270,14 +224,12 @@ class HBNBCommand(cmd.Cmd):
     def do_all(self, args):
         """ Shows all objects, or all objects of a class"""
         print_list = []
-
         if args:
-            class_name = args.split()[0]
-            if class_name not in self.classes:
+            args = args.split(' ')[0]  # remove possible trailing args
+            if args not in HBNBCommand.classes:
                 print("** class doesn't exist **")
                 return
-            for k, v in models.storage.all().items():
-                if k.split('.')[0] == class_name:
+            for k, v in models.storage.all(args).items():
                     print_list.append(str(v))
         else:
             for k, v in models.storage.all().items():
@@ -293,7 +245,7 @@ class HBNBCommand(cmd.Cmd):
     def do_count(self, args):
         """Count current number of class instances"""
         count = 0
-        for k, v in models.storage._FileStorage__objects.items():
+        for k, v in models.storage.all().items():
             if args == k.split('.')[0]:
                 count += 1
         print(count)
@@ -313,7 +265,7 @@ class HBNBCommand(cmd.Cmd):
         else:  # class name not present
             print("** class name missing **")
             return
-        if c_name not in self.classes:  # class name invalid
+        if c_name not in HBNBCommand.classes:  # class name invalid
             print("** class doesn't exist **")
             return
 
@@ -342,7 +294,7 @@ class HBNBCommand(cmd.Cmd):
                 args.append(v)
         else:  # isolate args
             args = args[2]
-            if args and args[0] == '\"':  # check for quoted arg
+            if args and args[0] is '\"':  # check for quoted arg
                 second_quote = args.find('\"', 1)
                 att_name = args[1:second_quote]
                 args = args[second_quote + 1:]
@@ -350,10 +302,10 @@ class HBNBCommand(cmd.Cmd):
             args = args.partition(' ')
 
             # if att_name was not quoted arg
-            if not att_name and args[0] != ' ':
+            if not att_name and args[0] is not ' ':
                 att_name = args[0]
             # check for quoted val arg
-            if args[2] and args[2][0] == '\"':
+            if args[2] and args[2][0] is '\"':
                 att_val = args[2][1:args[2].find('\"', 1)]
 
             # if att_val was not quoted arg
@@ -377,8 +329,8 @@ class HBNBCommand(cmd.Cmd):
                     print("** value missing **")
                     return
                 # type cast as necessary
-                if att_name in self.types:
-                    att_val = self.types[att_name](att_val)
+                if att_name in HBNBCommand.types:
+                    att_val = HBNBCommand.types[att_name](att_val)
 
                 # update dictionary with name, value pair
                 new_dict.__dict__.update({att_name: att_val})
@@ -390,12 +342,5 @@ class HBNBCommand(cmd.Cmd):
         print("Updates an object with new information")
         print("Usage: update <className> <id> <attName> <attVal>\n")
 
-
 if __name__ == "__main__":
-    """
-    Repeatedly issue a prompt, accept input, parse an initial prefix
-    off the received input, and dispatch to action methods, passing them
-    the remainder of the line as argument.
-    (see: https://github.com/python/cpython/blob/3.8/Lib/cmd.py#L98)
-    """
     HBNBCommand().cmdloop()

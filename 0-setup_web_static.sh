@@ -1,32 +1,27 @@
 #!/usr/bin/env bash
-# describe it then
-apt-get update
-apt-get -y install nginx
+# Sets up the web servers for the deployment of web_static.
 
-directories=("/data/web_static/releases/test" "/data/web_static/shared/")
+# Install Nginx if not already installed
+apt update -y >/dev/null 2>&1
+apt install nginx -y >/dev/null 2>&1
 
-for directory in "${directories[@]}"; do
-  #  if [ ! -e "$directory" ]; then
-  mkdir -p "$directory"
-  #  fi
-done
+# Create required directories if they don't exist
+mkdir -p /data/web_static/
+mkdir -p /data/web_static/releases/
+mkdir -p /data/web_static/shared/
+mkdir -p /data/web_static/releases/test/
 
-echo "<html>
-  <head>
-  </head>
-  <body>
-    Holberton School
-  </body>
-</html>" >/data/web_static/releases/test/index.html
+# Create fake index.html file
+echo -e "<html>\n\t<head>\n\t</head>\n\t<body>\n\t\tHolberton School\n\t</body>\n</html>" >/data/web_static/releases/test/index.html
 
-# Create a symbolic link /data/web_static/current linked to the /data/web_static/releases/test/ folder.
-# If the symbolic link already exists, it should be deleted and recreated every time the script is ran
-ln --symbolic --force /data/web_static/releases/test /data/web_static/current
+# Create the symbolic link
+ln -sf /data/web_static/releases/test /data/web_static/current
 
-# The -R option ensures that the ownership changes are applied
-# recursively to all files and directories within the folder
-chown -R ubuntu:ubuntu /data/
+# Change ownership of files and folders inside of /data folder
+chown -hR ubuntu:ubuntu /data
 
-sed -i '/listen 80 default_server;/a \ \n    location /hbnb_static {\n        alias /data/web_static/current/;\n        index index.html;\n    }' /etc/nginx/sites-available/default
+# Add alias to serve the content of /data/web_static/current to hbnb_static
+sed -i '51i\\tlocation /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\t}\n' /etc/nginx/sites-available/default
 
+# Restart the nginx service
 service nginx restart
