@@ -73,10 +73,6 @@ class ConsoleTestCase(unittest.TestCase):
         state_id = self.stdout.getvalue()[:-1]
         with patch('sys.stdout', self.stdout):
             self.console.onecmd('destroy State {}'.format(state_id))
-        # with patch('sys.stdout', self.stdout):
-        #     self.console.onecmd('show State {}'.format(state_id))
-        # self.assertEqual("** no instance found **\n",
-        #                  self.stdout.getvalue())
 
     def test_show(self):
         """test show"""
