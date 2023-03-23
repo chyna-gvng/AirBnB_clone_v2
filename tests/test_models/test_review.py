@@ -1,36 +1,52 @@
 #!/usr/bin/python3
-""" """
+"""
+    test reviews
+"""
+from models.base_model import BaseModel
+from models.review import Review
 from models.place import Place
 from models.user import User
-from tests.test_models.test_base_model import TestBaseModel
-from models.review import Review
+import unittest
 
 
-class TestReview(TestBaseModel):
-    """Test for review """
+class test_Review(unittest.TestCase):
+    """
+        test for Review class
+    """
+    @classmethod
+    def setUpClass(cls):
+        """
+            setup
+        """
+        cls.dummy_review = Review()
+        cls.dummy_review.text = "test"
+        cls.dummy_review.user_id = User().id
+        cls.dummy_review.place_id = Place().id
 
-    def __init__(self, *args, **kwargs):
-        """ """
-        super().__init__(*args, **kwargs)
-        self.name = "Review"
-        self.value = Review
+    @classmethod
+    def tearDownClass(cls):
+        """
+            tear down
+        """
+        del cls.dummy_review
 
-    def test_place_id(self):
-        """ """
-        new = self.value()
-        place = Place()
-        new.place_id = place.id
-        self.assertEqual(type(new.place_id), str)
+    def test_inheritance(self):
+        """
+            test proper inheritance
+        """
+        self.assertIsInstance(self.dummy_review, BaseModel)
+        self.assertTrue(hasattr(self.dummy_review, "id"))
+        self.assertTrue(hasattr(self.dummy_review, "created_at"))
+        self.assertTrue(hasattr(self.dummy_review, "updated_at"))
 
-    def test_user_id(self):
-        """ """
-        new = self.value()
-        user = User()
-        new.user_id = user.id
-        self.assertEqual(type(new.user_id), str)
+    def test_attrs(self):
+        """
+            test attributes
+        """
+        self.assertTrue(hasattr(self.dummy_review, "text"))
+        self.assertTrue(hasattr(self.dummy_review, "user_id"))
+        self.assertTrue(hasattr(self.dummy_review, "place_id"))
 
-    def test_text(self):
-        """ """
-        new = self.value()
-        new.text = ""
-        self.assertEqual(type(new.text), str)
+
+if __name__ == "__main__":
+    unittest.main()
