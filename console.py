@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """This is the console for AirBnB"""
 import cmd
+import models
 from models import storage
 from datetime import datetime
 from models.base_model import BaseModel
