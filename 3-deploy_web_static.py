@@ -1,55 +1,88 @@
 #!/usr/bin/python3
-"""
-Generates a .tgz archive from the contents
-of the web_static folder of the AirBnB Clone repo
-"""
-import os.path
+"""Comment"""
 from fabric.api import *
+import os
+import re
 from datetime import datetime
 
-env.hosts = ['35.231.195.110', '35.243.157.198']
-
-
-def deploy():
-    """ creates and distributes an archive to the web servers """
-    full_deploy = do_pack()
-    if os.path.exists(full_deploy) is False:
-        return False
-    return do_deploy(full_deploy)
+env.user = 'ubuntu'
+env.hosts = ['3.80.74.138', '3.88.68.105']
 
 
 def do_pack():
-    """ Function that makes packages"""
-    try:
-        now = datetime.now()
-        date_create = now.strftime("%Y%m%d%H%M%S")
-        local("mkdir -p versions")
-        do_tgz = "versions/web_static_{}.tgz".format(date_create)
-        local("tar -cvzf {} web_static".format(do_tgz))
-        return do_tgz
-    except:
+    """Function to compress files in an archive"""
+    local("mkdir -p versions")
+    filename = "versions/web_static_{}.tgz".format(datetime.strftime(
+        datetime.now(),
+        "%Y%m%d%H%M%S"))
+    result = local("tar -cvzf {} web_static"
+                   .format(filename))
+    if result.failed:
         return None
+    return filename
 
 
 def do_deploy(archive_path):
-    """ distributes an archive to a web server """
-    if os.path.exists(archive_path) is False:
+    """Comment"""
+    if not os.path.isfile(archive_path):
         return False
-    try:
-        path_id = archive_path.split('/')
-        a = path_id[1].split('.')
-        put(archive_path, "/tmp")
-        run("mkdir -p /data/web_static/releases/{}".format(a[0]))
-        run("tar -xzf /tmp/{} -C\
-        /data/web_static/releases/{}".format(path_id[1], a[0]))
-        run("rm /tmp/{}".format(path_id[1]))
-        run("mv /data/web_static/releases/{}/web_static/*\
-        /data/web_static/releases/{}".format(a[0], a[0]))
-        run("rm -rf /data/web_static/releases/{}/web_static".format(a[0]))
-        run("rm -rf /data/web_static/current")
-        run("ln -s /data/web_static/releases/{}/\
-        /data/web_static/current".format(a[0]))
-        print("New version deployed!")
-        return True
-    except:
+
+    filename_regex = re.compile(r'[^/]+(?=\.tgz$)')
+    match = filename_regex.search(archive_path)
+
+    # Upload the archive to the /tmp/ directory of the web server
+    archive_filename = match.group(0)
+    result = put(archive_path, "/tmp/{}.tgz".format(archive_filename))
+    if result.failed:
         return False
+    # Uncompress the archive to the folder
+    #     /data/web_static/releases/<archive filename without extension> on
+    #     the web server
+
+    result = run(
+        "mkdir -p /data/web_static/releases/{}/".format(archive_filename))
+    if result.failed:
+        return False
+    result = run("tar -xzf /tmp/{}.tgz -C /data/web_static/releases/{}/"
+                 .format(archive_filename, archive_filename))
+    if result.failed:
+        return False
+
+    # Delete the archive from the web server
+    result = run("rm /tmp/{}.tgz".format(archive_filename))
+    if result.failed:
+        return False
+    result = run("mv /data/web_static/releases/{}"
+                 "/web_static/* /data/web_static/releases/{}/"
+                 .format(archive_filename, archive_filename))
+    if result.failed:
+        return False
+    result = run("rm -rf /data/web_static/releases/{}/web_static"
+                 .format(archive_filename))
+    if result.failed:
+        return False
+
+    # Delete the symbolic link /data/web_static/current from the web server
+    result = run("rm -rf /data/web_static/current")
+    if result.failed:
+        return False
+
+    #  Create a new the symbolic link
+    #  /data/web_static/current on the web server,
+    #     linked to the new version of your code
+    #     (/data/web_static/releases/<archive filename without extension>)
+    result = run("ln -s /data/web_static/releases/{}/ /data/web_static/current"
+                 .format(archive_filename))
+    if result.failed:
+        return False
+
+    return True
+
+
+def deploy():
+    """Deploy"""
+    archive_pack = do_pack()
+    if archive_pack is None:
+        return False
+    deployed = do_deploy(archive_pack)
+    return deployed
