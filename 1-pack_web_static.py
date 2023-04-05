@@ -1,14 +1,16 @@
 #!/usr/bin/python3
-"""Compress web static package
+"""
+    script that generates a '.tgz' archive from the contents of the 'web_static'
 """
 from fabric.api import local
 from datetime import datetime
 
 
 def do_pack():
-    """Function to compress directory
-
-    Return: path to archive on success; None on fail
+    """
+        function to compress directory into .tgz archive
+        Return: Success - '.tgz' archive path
+                Failure - None
     """
     # Get current time
     now = datetime.now()
