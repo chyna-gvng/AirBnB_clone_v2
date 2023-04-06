@@ -41,4 +41,4 @@ def do_deploy(archive_path):
     return True
 
 # Usage:
-# do_deploy('/path/to/archive.tar.gz')
+# fab -f 2-do_deploy_web_static.py do_deploy:/path/to/archive.tgz
