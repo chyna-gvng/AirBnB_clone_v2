@@ -25,8 +25,7 @@ def do_deploy(archive_path):
 
     # Uncompress the archive to the folder
     filename = re.search(r'[^/]+$', archive_path).group(0)
-    folder = "/data/web_static/releases/{}".format(
-        os.path.splitext(filename)[0])
+    folder = "/var/www/html/hbnb_static"
 
     # Create the folder if it doesn't exist
     if not exists(folder):
@@ -37,18 +36,6 @@ def do_deploy(archive_path):
 
     # Remove archive from web server
     run("rm /tmp/{}".format(filename))
-
-    # Move all files from web_static to the new folder
-    run("mv {}/web_static/* {}".format(folder, folder))
-
-    # Remove the web_static folder
-    run("rm -rf {}/web_static".format(folder))
-
-    # Delete the symbolic link
-    run("rm -rf /data/web_static/current")
-
-    # Create new symbolic link
-    run("ln -s {} /data/web_static/current".format(folder))
 
     print("New version deployed!")
     return True
