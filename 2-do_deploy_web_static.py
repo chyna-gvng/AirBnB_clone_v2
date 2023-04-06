@@ -27,10 +27,6 @@ def do_deploy(archive_path):
     filename = re.search(r'[^/]+$', archive_path).group(0)
     folder = "/var/www/html/hbnb_static"
 
-    # Create the folder if it doesn't exist
-    if not exists(folder):
-        run("sudo mkdir {}".format(folder))
-
     # Extract files from archive
     run("tar -xzf /tmp/{} -C {}".format(filename, folder))
 
