@@ -28,7 +28,7 @@ def do_deploy(archive_path):
     folder = "/var/www/html/hbnb_static"
 
     # Extract files from archive
-    run("tar -xzf /tmp/{} -C {}".format(filename, folder))
+    run("sudo tar -xzf /tmp/{} -C {}".format(filename, folder))
 
     # Remove archive from web server
     run("rm /tmp/{}".format(filename))
