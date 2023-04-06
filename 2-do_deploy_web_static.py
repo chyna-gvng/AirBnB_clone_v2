@@ -29,7 +29,7 @@ def do_deploy(archive_path):
 
     # Create the folder if it doesn't exist
     if not exists(folder):
-        run("mkdir -p {}".format(folder))
+        run("sudo mkdir {}".format(folder))
 
     # Extract files from archive
     run("tar -xzf /tmp/{} -C {}".format(filename, folder))
