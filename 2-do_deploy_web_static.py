@@ -52,7 +52,7 @@ def do_deploy(archive_path):
 
     # Create 'hbnb_static' directory if it doesn't exist
     if not isdir("/var/www/html/hbnb_static"):
-        run("sudo mkdir /var/www/html/hbnb_static")
+        run("sudo mkdir -p /var/www/html/hbnb_static")
 
     # Sync 'hbnb_static' with 'current'
     run("sudo cp -r /data/web_static/current/* /var/www/html/hbnb_static/")
