@@ -5,7 +5,6 @@ from os.path import exists, isdir
 import os.path
 import re
 
-
 # Set the username and host for SSH connection to the server
 env.user = 'ubuntu'
 env.hosts = ['54.174.230.101', '100.26.57.164']
@@ -19,19 +18,41 @@ def do_deploy(archive_path):
     # Check if the archive file exists
     if not exists(archive_path):
         return False
-
     # Upload the archive to the /tmp/ directory of the web server
     put(archive_path, "/tmp/")
 
     # Uncompress the archive to the folder
     filename = re.search(r'[^/]+$', archive_path).group(0)
-    folder = "/var/www/html/hbnb_static"
+    folder = "/data/web_static/releases/{}".format(
+        os.path.splitext(filename)[0])
 
+    # Create the folder if it doesn't exist
+    if not exists(folder):
+        run("mkdir -p {}".format(folder))
     # Extract files from archive
-    run("sudo tar -xzf /tmp/{} -C {}".format(filename, folder))
-
+    run("tar -xzf /tmp/{} -C {}".format(filename, folder))
     # Remove archive from web server
     run("rm /tmp/{}".format(filename))
+
+    # Move all files from web_static to the new folder
+    run("mv {}/web_static/* {}".format(folder, folder))
+
+    # Remove the web_static folder
+    run("rm -rf {}/web_static".format(folder))
+
+    # Delete the symbolic link
+    run("rm -rf /data/web_static/current")
+
+    # Create new symbolic link
+    run("ln -s {} /data/web_static/current".format(folder))
+
+    # Make directory for symbolic link to root directory,
+    # of 'nginx' if it doesn't exist
+    if not isdir("/var/wwww/html/hbnb_static"):
+        run("sudo mkdir /var/www/html/hbnb_static")
+
+    # Create new symbolic link to root directory of 'nginx'
+    run("ln -s {} /var/www/html/hbnb_static".format(folder))
 
     print("New version deployed!")
     return True
