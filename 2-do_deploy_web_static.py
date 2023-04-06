@@ -18,6 +18,7 @@ def do_deploy(archive_path):
     # Check if the archive file exists
     if not exists(archive_path):
         return False
+
     # Upload the archive to the /tmp/ directory of the web server
     put(archive_path, "/tmp/")
 
@@ -29,8 +30,10 @@ def do_deploy(archive_path):
     # Create the folder if it doesn't exist
     if not exists(folder):
         run("mkdir -p {}".format(folder))
+
     # Extract files from archive
     run("tar -xzf /tmp/{} -C {}".format(filename, folder))
+
     # Remove archive from web server
     run("rm /tmp/{}".format(filename))
 
@@ -46,16 +49,5 @@ def do_deploy(archive_path):
     # Create new symbolic link
     run("ln -s {} /data/web_static/current".format(folder))
 
-    # Make directory for symbolic link to root directory,
-    # of 'nginx' if it doesn't exist
-    if not isdir("/var/wwww/html/hbnb_static"):
-        run("sudo mkdir /var/www/html/hbnb_static")
-
-    # Create new symbolic link to root directory of 'nginx'
-    run("ln -s {} /var/www/html/hbnb_static".format(folder))
-
     print("New version deployed!")
     return True
-
-# Usage:
-# fab -f 2-do_deploy_web_static.py do_deploy:/path/to/archive.tgz
