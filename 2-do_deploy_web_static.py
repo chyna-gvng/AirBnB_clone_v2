@@ -50,5 +50,11 @@ def do_deploy(archive_path):
     # Create new symbolic link
     run("ln -s {} /data/web_static/current".format(folder))
 
+    # Create 'hbnb_static' folder if it doesn't exist
+    run("mkdir -p /var/www/html/hbnb_static")
+
+    # Sync 'data/web_static/current' with 'hbnb_static'
+    run("rsync -av --delete /data/web_static/current/ /var/www/html/hbnb_static")
+
     print("New version deployed!")
     return True
