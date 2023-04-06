@@ -39,3 +39,6 @@ def do_deploy(archive_path):
 
     print("New version deployed!")
     return True
+
+# Usage:
+# do_deploy('/path/to/archive.tar.gz')
