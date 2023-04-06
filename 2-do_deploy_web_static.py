@@ -54,8 +54,8 @@ def do_deploy(archive_path):
     if not isdir("/var/www/html/hbnb_static"):
         run("sudo mkdir /var/www/html/hbnb_static")
 
-    # Symbloic link to sync 'hbnb_static' with 'current'
-    run("ln -s /data/web_static/current/ /var/www/html/hbnb_static/")
+    # Sync 'hbnb_static' with 'current'
+    run("rsync /data/web_static/current/ /var/www/html/hbnb_static/")
 
     print("New version deployed!")
     return True
