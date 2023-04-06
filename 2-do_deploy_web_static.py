@@ -5,6 +5,7 @@ from os.path import exists, isdir
 import os.path
 import re
 
+
 # Set the username and host for SSH connection to the server
 env.user = 'ubuntu'
 env.hosts = ['54.174.230.101', '100.26.57.164']
