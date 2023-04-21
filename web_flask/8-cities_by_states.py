@@ -1,28 +1,32 @@
 #!/usr/bin/python3
-"""Flask web application"""
+"""
+    python script that starts a Flask web application
+"""
 
 from models import storage
 from models.state import State
-from models.city import City
 from flask import Flask, render_template
-
 app = Flask(__name__)
 
 
+@app.route('/cities_by_states')
+def states_list():
+    """
+        Return: HTML page with list of states
+    """
+    path = '8-cities_by_states.html'
+    states = storage.all(State)
+    return render_template(path, states=states)
+
+
 @app.teardown_appcontext
-def close_session(exception=None):
-    """Close the session after every request"""
+def app_teardown(arg=None):
+    """
+        Clean-up session
+    """
     storage.close()
 
 
-@app.route('/cities_by_states', strict_slashes=False)
-def cities_by_states():
-    """Display a HTML page with all the cities by states"""
-    states = storage.all(State).values()
-    states = sorted(states, key=lambda x: x.name)
-
-    return render_template('8-cities_by_states.html', states=states)
-
-
 if __name__ == '__main__':
+    app.url_map.strict_slashes = False
     app.run(host='0.0.0.0', port=5000)
