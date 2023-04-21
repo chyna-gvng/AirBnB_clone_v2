@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-"""Start web application with two routings
+"""
+    python script that starts a Flask web application
 """
 
 from models import storage
@@ -12,7 +13,8 @@ app = Flask(__name__)
 
 @app.route('/hbnb_filters')
 def hbnb_filters():
-    """Render template with states
+    """
+        Return: HTML page with list of states and amenities
     """
     path = '100-hbnb.html'
     states = storage.all(State)
@@ -25,7 +27,8 @@ def hbnb_filters():
 
 @app.teardown_appcontext
 def app_teardown(arg=None):
-    """Clean-up session
+    """
+        Clean-up session
     """
     storage.close()
 
